@@ -71,6 +71,7 @@ open class MZDownloadManager: NSObject {
     fileprivate let TaskDescFileNameIndex = 0
     fileprivate let TaskDescFileURLIndex = 1
     fileprivate let TaskDescFileDestinationIndex = 2
+    fileprivate let TaskDescUserInfoIndex = 3
     
     fileprivate weak var delegate: MZDownloadManagerDelegate?
     
@@ -124,8 +125,9 @@ extension MZDownloadManager {
             let fileName = taskDescComponents[TaskDescFileNameIndex]
             let fileURL = taskDescComponents[TaskDescFileURLIndex]
             let destinationPath = taskDescComponents[TaskDescFileDestinationIndex]
+            let userInfo = taskDescComponents[TaskDescUserInfoIndex]
             
-            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, userInfo: userInfo)
             downloadModel.task = downloadTask
             downloadModel.startTime = Date()
             
@@ -284,8 +286,9 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 let fileName = taskDescComponents[self.TaskDescFileNameIndex]
                 let fileURL = taskDescComponents[self.TaskDescFileURLIndex]
                 let destinationPath = taskDescComponents[self.TaskDescFileDestinationIndex]
+                let userInfo = taskDescComponents[self.TaskDescUserInfoIndex]
                 
-                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, userInfo: userInfo)
                 downloadModel.status = TaskStatus.failed.description()
                 downloadModel.task = downloadTask
                 
@@ -362,18 +365,18 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
 
 extension MZDownloadManager {
     
-    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String) {
+    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String, userInfo: String?) {
         
         let url = request.url!
         let fileURL = url.absoluteString
         
         let downloadTask = sessionManager.downloadTask(with: request)
-        downloadTask.taskDescription = [fileName, fileURL, destinationPath].joined(separator: ",")
+        downloadTask.taskDescription = [fileName, fileURL, destinationPath, userInfo ?? ""].joined(separator: ",")
         downloadTask.resume()
         
         debugPrint("session manager:\(String(describing: sessionManager)) url:\(String(describing: url)) request:\(String(describing: request))")
         
-        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, userInfo: userInfo)
         downloadModel.startTime = Date()
         downloadModel.status = TaskStatus.downloading.description()
         downloadModel.task = downloadTask
@@ -382,20 +385,20 @@ extension MZDownloadManager {
         delegate?.downloadRequestStarted?(downloadModel, index: downloadingArray.count - 1)
     }
     
-    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String) {
+    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String, userInfo: String?) {
         
         let url = URL(string: fileURL)!
         let request = URLRequest(url: url)
-        addDownloadTask(fileName, request: request, destinationPath: destinationPath)
+        addDownloadTask(fileName, request: request, destinationPath: destinationPath, userInfo: userInfo)
         
     }
     
-    @objc public func addDownloadTask(_ fileName: String, fileURL: String) {
-        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "")
+    @objc public func addDownloadTask(_ fileName: String, fileURL: String, userInfo: String?) {
+        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "", userInfo: userInfo)
     }
     
-    @objc public func addDownloadTask(_ fileName: String, request: URLRequest) {
-        addDownloadTask(fileName, request: request, destinationPath: "")
+    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, userInfo: String?) {
+        addDownloadTask(fileName, request: request, destinationPath: "", userInfo: userInfo)
     }
     
     @objc public func pauseDownloadTaskAtIndex(_ index: Int) {

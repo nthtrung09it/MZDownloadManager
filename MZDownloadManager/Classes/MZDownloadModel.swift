@@ -46,17 +46,20 @@ open class MZDownloadModel: NSObject {
     
     open var startTime: Date?
     
+    open var userInfo: String?
+    
     fileprivate(set) open var destinationPath: String = ""
     
-    fileprivate convenience init(fileName: String, fileURL: String) {
+    fileprivate convenience init(fileName: String, fileURL: String, userInfo: String?) {
         self.init()
         
         self.fileName = fileName
         self.fileURL = fileURL
+        self.userInfo = userInfo
     }
     
-    convenience init(fileName: String, fileURL: String, destinationPath: String) {
-        self.init(fileName: fileName, fileURL: fileURL)
+    convenience init(fileName: String, fileURL: String, destinationPath: String, userInfo: String?) {
+        self.init(fileName: fileName, fileURL: fileURL, userInfo: userInfo)
         
         self.destinationPath = destinationPath
     }
